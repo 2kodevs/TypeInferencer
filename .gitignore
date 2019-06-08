@@ -1,0 +1,11 @@
+# python metadata #
+###################
+*.py[cod]
+
+# jupyter files #
+#################
+*.ipynb
+
+# some directories #
+####################
+core/cmp/tools
