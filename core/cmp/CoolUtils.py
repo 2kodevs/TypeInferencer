@@ -324,13 +324,13 @@ def pprint_tokens(tokens):
     print(' '.join([str(t.token_type) for t in pending]))
 
 # Example text
-text = '''
+_text = '''
 class Main {
     main ( console : IO ) : AUTO_TYPE {
         let x : AUTO_TYPE <- 3 + 2 in {
             case a of {
                 x : Int => 3 ;
-                p : strimg => "OK" ;
+                p : string => "OK" ;
             } esac ;
         } ;
     } ;
