@@ -1,3 +1,5 @@
+import itertools as itt
+
 class SemanticError(Exception):
     @property
     def text(self):
@@ -24,6 +26,11 @@ class Method:
     def __str__(self):
         params = ', '.join(f'{n}:{t.name}' for n,t in zip(self.param_names, self.param_types))
         return f'[method] {self.name}({params}): {self.return_type.name};'
+
+    def __eq__(self, other):
+        return other.name == self.name and \
+            other.return_type == self.return_type and \
+            other.param_types == self.param_types
 
 class Type:
     def __init__(self, name:str):
@@ -70,6 +77,15 @@ class Type:
                 raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
 
     def define_method(self, name:str, param_names:list, param_types:list, return_type):
+        if name in self.methods:
+            raise SemanticError(f'Method "{name}" already defined in {self.name}')
+            # raise SemanticError(f'Method "{name}" already defined in {self.name} with a different signature.')
+
+        method = self.methods[name] = Method(name, param_names, param_types, return_type)
+        return method
+    
+    # my method, change it in future
+    def define_method(self, name:str, param_names:list, param_types:list, return_type):
         try:
             method = self.get_method(name)
         except SemanticError:
@@ -80,6 +96,12 @@ class Type:
 
         method = self.methods[name] = Method(name, param_names, param_types, return_type)
         return method
+
+    def conforms_to(self, other):
+        return other.bypass() or self == other or self.parent is not None and self.parent.conforms_to(other)
+
+    def bypass(self):
+        return False
 
     def __str__(self):
         output = f'type {self.name}'
@@ -101,6 +123,12 @@ class ErrorType(Type):
     def __init__(self):
         Type.__init__(self, '<error>')
 
+    def conforms_to(self, other):
+        return True
+
+    def bypass(self):
+        return True
+
     def __eq__(self, other):
         return isinstance(other, Type)
 
@@ -108,8 +136,21 @@ class VoidType(Type):
     def __init__(self):
         Type.__init__(self, '<void>')
 
+    def conforms_to(self, other):
+        raise Exception('Invalid type: void type.')
+
+    def bypass(self):
+        return True
+
     def __eq__(self, other):
         return isinstance(other, VoidType)
+
+class IntType(Type):
+    def __init__(self):
+        Type.__init__(self, 'int')
+
+    def __eq__(self, other):
+        return other.name == self.name or isinstance(other, IntType)
 
 class Context:
     def __init__(self):
@@ -132,3 +173,41 @@ class Context:
 
     def __repr__(self):
         return str(self)
+
+class VariableInfo:
+    def __init__(self, name, vtype):
+        self.name = name
+        self.type = vtype
+
+class Scope:
+    def __init__(self, parent=None):
+        self.locals = []
+        self.parent = parent
+        self.children = []
+        self.index = 0 if parent is None else len(parent)
+
+    def __len__(self):
+        return len(self.locals)
+
+    def create_child(self):
+        child = Scope(self)
+        self.children.append(child)
+        return child
+
+    def define_variable(self, vname, vtype):
+        info = VariableInfo(vname, vtype)
+        self.locals.append(info)
+        return info
+
+    def find_variable(self, vname, index=None):
+        locals = self.locals if index is None else itt.islice(self.locals, index)
+        try:
+            return next(x for x in locals if x.name == vname)
+        except StopIteration:
+            return self.parent.find_variable(vname, self.index) if self.parent else None
+
+    def is_defined(self, vname):
+        return self.find_variable(vname) is not None
+
+    def is_local(self, vname):
+        return any(True for x in self.locals if x.name == vname)
