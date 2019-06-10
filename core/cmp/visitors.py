@@ -22,8 +22,8 @@ class FormatVisitor(object):
     
     @visitor.when(AttrDeclarationNode)
     def visit(self, node, tabs=0):
-        sons = [node.expression] if node.expression else []
-        text = '<- <expr>' if node.expression else ''
+        sons = [node.expr] if node.expr else []
+        text = '<- <expr>' if node.expr else ''
         ans = '\t' * tabs + f'\\__AttrDeclarationNode: {node.id} : {node.type} {text}'
         body = '\n'.join(self.visit(child, tabs + 1) for child in sons)
         return f'{ans}\n{body}' if body else f'{ans}'
@@ -55,7 +55,7 @@ class FormatVisitor(object):
     
     @visitor.when(BlockNode)
     def visit(self, node, tabs=0):
-        sons = node.expressions
+        sons = node.expr
         ans = '\t' * tabs + f'\\__BlockNode: {{<expr> ... <expr>}}'
         body = '\n'.join(self.visit(child, tabs + 1) for child in sons)
         return f'{ans}\n{body}'
@@ -69,21 +69,21 @@ class FormatVisitor(object):
     
     @visitor.when(CaseOfNode)
     def visit(self, node, tabs=0):
-        sons = [node.expression] + node.branches
+        sons = [node.expr] + node.branches
         ans = '\t' * tabs + f'\\__CaseOfNode: case <expr> of {{<case> ... <case>}} esac'
         body = '\n'.join(self.visit(child, tabs + 1) for child in sons)
         return f'{ans}\n{body}'
     
     @visitor.when(CaseExpresion)
     def visit(self, node, tabs=0):
-        sons = [node.expression]
+        sons = [node.expr]
         ans = '\t' * tabs + f'\\__CaseExpresion: {node.id} : {node.type} => <expr>'
         body = '\n'.join(self.visit(child, tabs + 1) for child in sons)
         return f'{ans}\n{body}'
     
     @visitor.when(AssignNode)
     def visit(self, node, tabs=0):
-        sons = [node.expression]
+        sons = [node.expr]
         ans = '\t' * tabs + f'\\__AssignNode: {node.id} = <expr>'
         body = '\n'.join(self.visit(child, tabs + 1) for child in node.body)
         return f'{ans}\n{body}'
@@ -91,7 +91,7 @@ class FormatVisitor(object):
     @visitor.when(UnaryNode)
     def visit(self, node, tabs=0):
         ans = '\t' * tabs + f'\\__{node.__class__.__name__} <expr>'
-        right = self.visit(node.expression, tabs + 1)
+        right = self.visit(node.expr, tabs + 1)
         return f'{ans}\n{right}'
    
     @visitor.when(BinaryNode)
