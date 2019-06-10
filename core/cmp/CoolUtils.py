@@ -59,7 +59,10 @@ class CaseOfNode(ExpressionNode):
         self.expression = expression
         self.branches = branches
 
-class CaseExpresion(AttrDeclarationNode):
+class CaseExpresionNode(AttrDeclarationNode):
+	pass
+
+class LetAttributeNode(AttrDeclarationNode):
 	pass
 
 class AssignNode(ExpressionNode):
@@ -213,14 +216,14 @@ expr_list %= expr + semi, lambda h, s: [s[1]]
 expr_list %= expr + semi + expr_list, lambda h, s: [s[1]] + s[3]
 
 # <let-list>     ???
-let_list %= idx + colon + typex, lambda h, s: [AttrDeclarationNode(s[1], s[3])]
-let_list %= idx + colon + typex + larrow + expr, lambda h, s: [AttrDeclarationNode(s[1], s[3], s[5])]
-let_list %= idx + colon + typex + comma + let_list, lambda h, s: [AttrDeclarationNode(s[1], s[3])] + s[5]
-let_list %= idx + colon + typex + larrow + expr + comma + let_list, lambda h, s: [AttrDeclarationNode(s[1], s[3], s[5])] + s[7]
+let_list %= idx + colon + typex, lambda h, s: [LetAttributeNode(s[1], s[3])]
+let_list %= idx + colon + typex + larrow + expr, lambda h, s: [LetAttributeNode(s[1], s[3], s[5])]
+let_list %= idx + colon + typex + comma + let_list, lambda h, s: [LetAttributeNode(s[1], s[3])] + s[5]
+let_list %= idx + colon + typex + larrow + expr + comma + let_list, lambda h, s: [LetAttributeNode(s[1], s[3], s[5])] + s[7]
 
 # <case-list>    ???
-case_list %= idx + colon + typex + rarrow + expr + semi, lambda h, s: [CaseExpresion(s[1], s[3], s[5])]
-case_list %= idx + colon + typex + rarrow + expr + semi + case_list, lambda h, s: [CaseExpresion(s[1], s[3], s[5])] + s[7]
+case_list %= idx + colon + typex + rarrow + expr + semi, lambda h, s: [CaseExpresionNode(s[1], s[3], s[5])]
+case_list %= idx + colon + typex + rarrow + expr + semi + case_list, lambda h, s: [CaseExpresionNode(s[1], s[3], s[5])] + s[7]
 
 # <truth-expr>   ???
 truth_expr %= notx + truth_expr, lambda h, s: NotNode(s[2])
