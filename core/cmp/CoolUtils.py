@@ -19,10 +19,10 @@ class ClassDeclarationNode(DeclarationNode):
         self.features = features
 
 class AttrDeclarationNode(DeclarationNode):
-    def __init__(self, idx, typex, expression=None):
+    def __init__(self, idx, typex, expr=None):
         self.id = idx
         self.type = typex
-        self.expression = expression
+        self.expr = expr
 
 class FuncDeclarationNode(DeclarationNode):
     def __init__(self, idx, params, return_type, body):
@@ -46,8 +46,8 @@ class WhileLoopNode(ExpressionNode):
         self.body = body
 
 class BlockNode(ExpressionNode):
-    def __init__(self, expressions):
-        self.expressions = expressions
+    def __init__(self, exprs):
+        self.exprs = exprs
 
 class LetInNode(ExpressionNode):
     def __init__(self, let_body, in_body):
@@ -55,8 +55,8 @@ class LetInNode(ExpressionNode):
         self.in_body = in_body
 
 class CaseOfNode(ExpressionNode):
-    def __init__(self, expression, branches):
-        self.expression = expression
+    def __init__(self, expr, branches):
+        self.expr = expr
         self.branches = branches
 
 class CaseExpresionNode(AttrDeclarationNode):
@@ -66,13 +66,13 @@ class LetAttributeNode(AttrDeclarationNode):
 	pass
 
 class AssignNode(ExpressionNode):
-    def __init__(self, idx, expression):
+    def __init__(self, idx, expr):
         self.id = idx
-        self.expression= expression
+        self.expr= expr
 
 class UnaryNode(ExpressionNode):
-    def __init__(self, expression):
-        self.expression = expression
+    def __init__(self, expr):
+        self.expr = expr
 
 class NotNode(UnaryNode):
     pass
