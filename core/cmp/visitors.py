@@ -74,18 +74,27 @@ class FormatVisitor(object):
         body = '\n'.join(self.visit(child, tabs + 1) for child in sons)
         return f'{ans}\n{body}'
     
-    @visitor.when(CaseExpresion)
+    @visitor.when(CaseExpresionNode)
     def visit(self, node, tabs=0):
         sons = [node.expr]
-        ans = '\t' * tabs + f'\\__CaseExpresion: {node.id} : {node.type} => <expr>'
+        ans = '\t' * tabs + f'\\__CaseExpresionNode: {node.id} : {node.type} => <expr>'
         body = '\n'.join(self.visit(child, tabs + 1) for child in sons)
         return f'{ans}\n{body}'
+
+    @visitor.when(LetAttributeNode)
+    def visit(self, node, tabs=0):
+        def visit(self, node, tabs=0):
+        sons = [node.expression] if node.expression else []
+        text = '<- <expr>' if node.expression else ''
+        ans = '\t' * tabs + f'\\__LetAttributeNode: {node.id} : {node.type} {text}'
+        body = '\n'.join(self.visit(child, tabs + 1) for child in sons)
+        return f'{ans}\n{body}' if body else f'{ans}'
     
     @visitor.when(AssignNode)
     def visit(self, node, tabs=0):
         sons = [node.expr]
         ans = '\t' * tabs + f'\\__AssignNode: {node.id} = <expr>'
-        body = '\n'.join(self.visit(child, tabs + 1) for child in node.body)
+        body = '\n'.join(self.visit(child, tabs + 1) for child in sons)
         return f'{ans}\n{body}'
     
     @visitor.when(UnaryNode)

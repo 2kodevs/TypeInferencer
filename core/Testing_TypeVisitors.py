@@ -1,8 +1,3 @@
-# Build AST
-
-# In[46]:
-
-
 from cmp.visitors import *
 from cmp.evaluation import *
 
@@ -28,36 +23,10 @@ def build_AST(G, text):
 ast = build_AST(CoolGrammar, text)
 
 
-# ## Chequeo Semantico
-# 
-# En `cmp.semantic` se distribuyen una serie de clases que funcionarán como soporte para la fase de chequeo semántico.
-
-# In[47]:
-
-
 from cmp.semantic import SemanticError
 from cmp.semantic import Attribute, Method, Type
 from cmp.semantic import ErrorType
 from cmp.semantic import Context
-
-
-# - La clase `SemanticError` hereda de `Exception` para funcionar como mecanismo para manejar errores en los contextos. El campo `text` que poseen las instancias de `SemanticError` permite obtener el texto de error con el que se construyó.
-# - Las clases `Attribute` y `Method` funcionan como contenedores de los datos necesarios para representar los atributos y métodos del lenguaje respectivamente. Del primero se almacena el nombre del campo (un `str)` y su tipo (una instancia de `Type`). Del segundo se almacenan: nombre del método (`str`), nombre de los parámetros (`list<str>`), tipos de los parámetros (`list<Type>`) y el tipo de retorno (`Type`).
-# - La clase `Type` funciona como descriptor de todos los atributos y métodos con que cuentan los tipos del lenguaje. Esta clase permite crear instancias a partir del nombre del tipo (`Type(name)`) y posteriormente actualizar su definición con:
-#     - tipo padre: `set_parent(...)`.
-#     - atributos: `get_attributes(...)` y `define_attribute(...)`.
-#     - métodos: `get_method(...)` y `define_method(...)`.
-# 
-# > Para más información se recomienda revisar el código fuente disponible en `cmp.semantic`.
-# 
-# - La clase `ErrorType` puede usarse para manejar las situaciones en las que se refiere un tipo que no ha sido declarado. Esto nos permitirá detectar más errores que detener el chequeo semántico al primer error. Las instancias de `ErrorType` tiene la particularidad de ser iguales entre sí y a cualquier instancia de `Type`. Además, el tipo `ErrorType` se conforma (en el sentido de herencia) a todo tipo y viceversa.
-# - La clase `Context` permite controlar los tipos que han sido definidos en el lenguaje.
-#     - definir un tipo: `create_type(...)`.
-#     - obtener un tipo: `get_type(...)`.
-
-# ### Type Collector
-
-# In[48]:
 
 
 class TypeCollector(object):
@@ -103,9 +72,7 @@ class TypeCollector(object):
         node.declarations.sort(key = lambda node: get_type_level(node.id))
                 
                 
-        
-    # Your code here!!!
-    # ????
+
     @visitor.when(ClassDeclarationNode)
     def visit(self, node):
         try:
@@ -113,11 +80,6 @@ class TypeCollector(object):
             self.type_level[node.id] = node.parent
         except SemanticError as ex:
             self.errors.append(ex.text)
-
-
-#     
-
-# In[49]:
 
 
 errors = []
@@ -133,10 +95,6 @@ print(context)
 
 assert errors == []
 
-
-# ### Type Builder
-
-# In[50]:
 
 
 class TypeBuilder:
@@ -214,11 +172,6 @@ class TypeBuilder:
             self.errors.append(ex.text)
 
 
-#    
-
-# In[51]:
-
-
 builder = TypeBuilder(context, errors)
 builder.visit(ast)
 
@@ -227,24 +180,12 @@ print('Context:')
 print(context)
 
 
-# ### Chequeo de Tipos
-# 
-# Estaremos validando que el programa haga un uso correcto de los tipos definidos. Recordemos algunas de las características del lenguaje que queremos comprobar:
-# - Todos los métodos son de instancia y dentro de ellos es visible `self` _(solo lectura)_, cuyo tipo estático coincide con el de la clase que implementa el método.
-# - Al invocar un método, se evalúa primero la expresión que devuelve el objeto, luego los parámetros, y por último se llama la función.
-# - Todos los atributos son privados y todos los métodos son públicos.
-# - Un método se puede sobrescribir sí y solo sí se mantiene exactamente la misma definición para los tipos de retorno y de los argumentos.
-# - Las operaciones `+`, `-`, `*` y `/` están definidas únicamente entre valores enteros, y devuelven enteros.
-
-# In[52]:
 
 
 from cmp.semantic import SemanticError
 from cmp.semantic import Attribute, Method, Type
 from cmp.semantic import ErrorType, IntType
 
-
-# In[53]:
 
 
 WRONG_SIGNATURE = 'Method "%s" already defined in "%s" with a different signature.'
@@ -254,17 +195,6 @@ INCOMPATIBLE_TYPES = 'Cannot convert "%s" into "%s".'
 VARIABLE_NOT_DEFINED = 'Variable "%s" is not defined in "%s".'
 INVALID_OPERATION = 'Operation is not defined between "%s" and "%s".'
 
-
-# ### Scope
-# 
-# Se provee una implementación de la clase `Scope` en `cmp.semantic`. Esta clase nos permitirá gestionar las variables definidas en los distintos niveles de visibilidad, así como saber con qué tipo se definieron. Los métodos fundamentales son:
-# - `create_child`: Crea un `scope` hijo que hereda las variables visibles hasta ese momento en el `scope` padre.
-# - `define_variable`: Registra localmente una variable en el `scope` a partir de su nombre y tipo.
-# - `find_variable`: Devuelve un `VariableInfo` con la información de la variable consultada (a partir de su nombre). La variable devuelta no tiene por qué estar definida localmente. En caso de que la variable no esté definida devuelve `None`.
-# - `is_defined`: Indica si la variable consultada es visible en el `scope`.
-# - `is_local`: Indica si la variable consultada está definida localmente en el `scope`.
-
-# In[54]:
 
 
 from cmp.semantic import Scope
