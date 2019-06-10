@@ -180,8 +180,7 @@ class TypeCollector(object):
                 
             return self.type_level[typex]
         
-        node.declarations.sort(key = lambda node: get_type_level(node.id))
-                
+        node.declarations.sort(key = lambda node: get_type_level(node.id))               
                 
     @visitor.when(ClassDeclarationNode)
     def visit(self, node):
@@ -274,6 +273,28 @@ class TypeBuilder:
             self.errors.append(ex.text)
 
 
+def LCA(type_list):
+	known_types = set()
+	counter = {}
+
+	for typex in type_list:
+		node = typex
+		while True:
+			try:
+				counter[node.name] += 1
+				if counter[node.name] == len(type_list):
+					return [t for t in known_types if t.name == node.name][0]
+			except KeyError:
+				counter[node.name] = 1
+				known_types.add(node)
+			if node.parent:
+				node = node.parent
+			else:
+				break
+
+	raise Excption('El LCA se partio')
+
+
 # Type Checker
 class TypeChecker:
     def __init__(self, context, errors=[]):
@@ -307,6 +328,7 @@ class TypeChecker:
     @visitor.when(AttrDeclarationNode)
     def visit(self, node, scope):
         pass
+        #TODO Ton check the exp type is comptible with attr
     
     @visitor.when(FuncDeclarationNode)
     def visit(self, node, scope):
@@ -357,7 +379,7 @@ class TypeChecker:
             
             if var.name == 'self':
                 self.errors.append(SELF_IS_READONLY)
-            elif not expr_type.conforms_to(node_type):
+            elif not expr_type.conforms_to(node_type): 
                 self.errors.append(INCOMPATIBLE_TYPES.replace('%s', expr_type.name, 1).replace('%s', node_type.name, 1))
         else:
             self.errors.append(VARIABLE_NOT_DEFINED.replace('%s', node.id, 1).replace('%s', self.current_method.name, 1))
@@ -369,8 +391,12 @@ class TypeChecker:
     def visit(self, node, scope):
         self.visit(node.expr, scope)
         
+        types_list = []
         for case in node.branches:
             self.visit(case.expr, scope)
+            type_list.append(case.expr.computed_type)
+
+        node.computed_type = LCA(type_list)
             
     @visitor.when(LetInNode)
     def visit(self, node, scope):
@@ -391,9 +417,12 @@ class TypeChecker:
             self.errors.append(CONDITION_NOT_BOOL.replace('%s', 'If', 1).replace('%s', expr_type.name, 1))
 
         self.visit(node.if_body, scope)
+        node.computed_type = node.if_body.computed_type
         
         if node.else_body:
             self.visit(node.else_body, scope)
+            node.computed_type = LCA([node.if_body.computed_type, node.else_body.computed_type])
+            
         
     @visitor.when(BlockNode)
     def visit(self, node, scope):
