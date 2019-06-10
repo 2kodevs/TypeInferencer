@@ -13,6 +13,7 @@ VARIABLE_NOT_DEFINED = 'Variable "%s" is not defined in "%s".'
 INVALID_OPERATION = 'Operation is not defined between "%s" and "%s".'
 CONDITION_NOT_BOOL = '"%s" conditions return type must be Bool not "%s"'
 
+build_in_types = [ 'Int', 'String', 'Bool', 'IO', 'SELF_TYPE', 'AUTO_TYPE' ]
 
 #AST Printer
 class FormatVisitor(object):
@@ -157,7 +158,7 @@ class TypeCollector(object):
         self.context.create_type('String').set_parent(obj)
         self.context.create_type('Bool').set_parent(obj)
         self.context.create_type('IO').set_parent(obj)
-        self.context.create_type('SELF_TYPE')
+        #self.context.create_type('SELF_TYPE')
         self.context.create_type('AUTO_TYPE')
         
         for def_class in node.declarations:
@@ -184,12 +185,14 @@ class TypeCollector(object):
                 
     @visitor.when(ClassDeclarationNode)
     def visit(self, node):
-        try:
-            self.context.create_type(node.id)
-            self.type_level[node.id] = node.parent
-        except SemanticError as ex:
-            self.errors.append(ex.text)
-
+        if node.id not in ['AUTO_TYPE', 'SELF_TYPE', 'self']:
+            try:
+                self.context.create_type(node.id)
+                self.type_level[node.id] = node.parent
+            except SemanticError as ex:
+                self.errors.append(ex.text)
+        else:
+            self.errors.append(f'{node.id} is a keyword and cannot be a class name')
 
 # Type Builder
 class TypeBuilder:
@@ -210,7 +213,7 @@ class TypeBuilder:
         try:
             main = self.context.get_type('Main')
             main.get_method('main')
-            if main.parent != 'Object':
+            if main.parent.name != 'Object':
                 self.errors.append('The class "Main" cannot inherits from any type.')
         except SemanticError:
             self.errors.append('The class "Main" and his method "main" are needed.')
@@ -221,11 +224,14 @@ class TypeBuilder:
         self.current_type = self.context.get_type(node.id)
         
         if node.parent:
-            try:
-                parent_type = self.context.get_type(node.parent)
-                self.current_type.set_parent(parent_type)
-            except SemanticError as ex:
-                self.errors.append(ex.text)
+            if node.parent in build_in_types:
+                self.errors.append(f'Is not possible to inherits from "{node.parent}"')
+            else:
+                try:
+                    parent_type = self.context.get_type(node.parent)
+                    self.current_type.set_parent(parent_type)
+                except SemanticError as ex:
+                    self.errors.append(ex.text)
         
         for feature in node.features:
             self.visit(feature)
@@ -233,7 +239,7 @@ class TypeBuilder:
     @visitor.when(AttrDeclarationNode)
     def visit(self, node):
         try:
-            attr_type = self.context.get_type(node.type)
+            attr_type = self.context.get_type(node.type) if node.type != 'SELF_TYPE' else self.current_type
         except SemanticError as ex:
             self.errors.append(ex.text)
             attr_type = ErrorType()
@@ -248,7 +254,7 @@ class TypeBuilder:
         arg_names, arg_types = [], []
         for idx, typex in node.params:
             try:
-                arg_type = self.context.get_type(typex)
+                arg_type = self.context.get_type(typex) if node.type != 'SELF_TYPE' else self.current_type
             except SemanticError as ex:
                 self.errors.append(ex.text)
                 arg_type = ErrorType()
@@ -257,7 +263,7 @@ class TypeBuilder:
             arg_types.append(arg_type)
         
         try:
-            ret_type = VoidType() if node.type == 'void' else self.context.get_type(node.type)
+            ret_type = self.context.get_type(node.type) if node.type != 'SELF_TYPE' else self.current_type
         except SemanticError as ex:
             self.errors.append(ex.text)
             ret_type = ErrorType()
@@ -325,7 +331,7 @@ class TypeChecker:
         expr_type = node.expr.computed_type
         
         try:
-            node_type = self.context.get_type(node.type)
+            node_type = self.context.get_type(node.type) if node.type != 'SELF_TYPE' else self.current_type
         except SemanticError as ex:
             self.errors.append(ex.text)
             node_type = ErrorType()

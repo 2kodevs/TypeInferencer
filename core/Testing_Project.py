@@ -22,11 +22,11 @@ def build_AST(G, text):
 
 
 text = '''
-class A { } ;
-class Main inherits A {
+class A inherits SELF_TYPE { } ;
+class Main {
     a : Bool ;
     b : Int <- 666 ;
-    main ( console : IO ) : Bool {
+    main ( console : IO ) : SELF_TYPE {
         a <- true ;
         {
             let c : Int <- 0 in c + b ;
