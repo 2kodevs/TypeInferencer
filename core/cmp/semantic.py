@@ -33,7 +33,7 @@ class Method:
             other.param_types == self.param_types
 
 class Type:
-    def __init__(self, name:str):
+    def __init__(self, name:str='Object'):
         self.name = name
         self.attributes = []
         self.methods = {}
@@ -101,6 +101,8 @@ class Type:
         return other.bypass() or self == other or self.parent is not None and self.parent.conforms_to(other)
 
     def bypass(self):
+        if self.name == 'Object':
+            return True
         return False
 
     def __str__(self):
@@ -147,10 +149,32 @@ class VoidType(Type):
 
 class IntType(Type):
     def __init__(self):
-        Type.__init__(self, 'int')
+        Type.__init__(self, 'Int')
 
     def __eq__(self, other):
         return other.name == self.name or isinstance(other, IntType)
+
+class StringType(Type):
+    def __init__(self):
+        Type.__init__(self, 'String')
+
+    def __eq__(self, other):
+        return other.name == self.name or isinstance(other, StringType)
+
+class BoolType(Type):
+    def __init__(self):
+        Type.__init__(self, 'Bool')
+
+    def __eq__(self, other):
+        return other.name == self.name or isinstance(other, BoolType)
+
+class IOType(Type):
+    def __init__(self):
+        Type.__init__(self, 'IO')
+
+    def __eq__(self, other):
+        return other.name == self.name or isinstance(other, IOType)
+
 
 class Context:
     def __init__(self):

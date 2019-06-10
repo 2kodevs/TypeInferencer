@@ -19,10 +19,11 @@ class ClassDeclarationNode(DeclarationNode):
         self.features = features
 
 class AttrDeclarationNode(DeclarationNode):
-    def __init__(self, idx, typex, expr=None):
+    def __init__(self, idx, typex, attr, expr=None):
         self.id = idx
         self.type = typex
         self.expr = expr
+        self.attr = attr
 
 class FuncDeclarationNode(DeclarationNode):
     def __init__(self, idx, params, return_type, body):
@@ -59,7 +60,7 @@ class CaseOfNode(ExpressionNode):
         self.expr = expr
         self.branches = branches
 
-class CaseExpresion(AttrDeclarationNode):
+class CaseExpression(AttrDeclarationNode):
 	pass
 
 class AssignNode(ExpressionNode):
@@ -183,8 +184,8 @@ feature_list %= feature + feature_list, lambda h, s: [s[1]] + s[2]
 feature_list %= CoolGrammar.Epsilon, lambda h, s: []
 
 # <def-attr>     ???
-feature %= idx + colon + typex + semi, lambda h, s: AttrDeclarationNode(s[1], s[3])
-feature %= idx + colon + typex + larrow + expr + semi, lambda h, s: AttrDeclarationNode(s[1], s[3], s[5])
+feature %= idx + colon + typex + semi, lambda h, s: AttrDeclarationNode(s[1], s[3], True)
+feature %= idx + colon + typex + larrow + expr + semi, lambda h, s: AttrDeclarationNode(s[1], s[3], True, s[5])
 
 # <def-func>     ???
 feature %= idx + opar + param_list + cpar + colon + typex + ocur + expr_list + ccur + semi, lambda h, s: FuncDeclarationNode(s[1], s[3], s[6], s[8]) 
@@ -213,14 +214,14 @@ expr_list %= expr + semi, lambda h, s: [s[1]]
 expr_list %= expr + semi + expr_list, lambda h, s: [s[1]] + s[3]
 
 # <let-list>     ???
-let_list %= idx + colon + typex, lambda h, s: [AttrDeclarationNode(s[1], s[3])]
-let_list %= idx + colon + typex + larrow + expr, lambda h, s: [AttrDeclarationNode(s[1], s[3], s[5])]
-let_list %= idx + colon + typex + comma + let_list, lambda h, s: [AttrDeclarationNode(s[1], s[3])] + s[5]
-let_list %= idx + colon + typex + larrow + expr + comma + let_list, lambda h, s: [AttrDeclarationNode(s[1], s[3], s[5])] + s[7]
+let_list %= idx + colon + typex, lambda h, s: [AttrDeclarationNode(s[1], s[3], False)]
+let_list %= idx + colon + typex + larrow + expr, lambda h, s: [AttrDeclarationNode(s[1], s[3], False, s[5])]
+let_list %= idx + colon + typex + comma + let_list, lambda h, s: [AttrDeclarationNode(s[1], s[3], False)] + s[5]
+let_list %= idx + colon + typex + larrow + expr + comma + let_list, lambda h, s: [AttrDeclarationNode(s[1], s[3], False, s[5])] + s[7]
 
 # <case-list>    ???
-case_list %= idx + colon + typex + rarrow + expr + semi, lambda h, s: [CaseExpresion(s[1], s[3], s[5])]
-case_list %= idx + colon + typex + rarrow + expr + semi + case_list, lambda h, s: [CaseExpresion(s[1], s[3], s[5])] + s[7]
+case_list %= idx + colon + typex + rarrow + expr + semi, lambda h, s: [CaseExpression(s[1], s[3], False, s[5])]
+case_list %= idx + colon + typex + rarrow + expr + semi + case_list, lambda h, s: [CaseExpression(s[1], s[3], False, s[5])] + s[7]
 
 # <truth-expr>   ???
 truth_expr %= notx + truth_expr, lambda h, s: NotNode(s[2])
