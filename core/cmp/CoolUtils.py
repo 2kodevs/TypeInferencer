@@ -13,7 +13,7 @@ class DeclarationNode(Node):
     pass
 
 class ClassDeclarationNode(DeclarationNode):
-    def __init__(self, idx, features, parent=None):
+    def __init__(self, idx, features, parent='Object'):
         self.id = idx
         self.parent = parent
         self.features = features

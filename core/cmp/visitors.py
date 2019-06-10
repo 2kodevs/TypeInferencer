@@ -3,7 +3,16 @@ from cmp.CoolUtils import *
 from cmp.semantic import SemanticError
 from cmp.semantic import Attribute, Method, Type
 from cmp.semantic import ErrorType, IntType, StringType, BoolType, IOType
-from cmp.semantic import Scope
+from cmp.semantic import Context, Scope
+
+WRONG_SIGNATURE = 'Method "%s" already defined in "%s" with a different signature.'
+SELF_IS_READONLY = 'Variable "self" is read-only.'
+LOCAL_ALREADY_DEFINED = 'Variable "%s" is already defined in method "%s".'
+INCOMPATIBLE_TYPES = 'Cannot convert "%s" into "%s".'
+VARIABLE_NOT_DEFINED = 'Variable "%s" is not defined in "%s".'
+INVALID_OPERATION = 'Operation is not defined between "%s" and "%s".'
+CONDITION_NOT_BOOL = '"%s" conditions return type must be Bool not "%s"'
+
 
 #AST Printer
 class FormatVisitor(object):
@@ -143,13 +152,13 @@ class TypeCollector(object):
     @visitor.when(ProgramNode)
     def visit(self, node):
         self.context = Context()
-        self.context.create_type('Int')
-        self.context.create_type('String')
-        self.context.create_type('Bool')
-        self.context.create_type('IO')
+        obj = self.context.create_type('Object')
+        self.context.create_type('Int').set_parent(obj)
+        self.context.create_type('String').set_parent(obj)
+        self.context.create_type('Bool').set_parent(obj)
+        self.context.create_type('IO').set_parent(obj)
         self.context.create_type('SELF_TYPE')
         self.context.create_type('AUTO_TYPE')
-        self.context.create_type('Object')
         
         for def_class in node.declarations:
             self.visit(def_class)
@@ -199,7 +208,10 @@ class TypeBuilder:
             self.visit(def_class)
             
         try:
-            self.context.get_type('Main').get_method('main')
+            main = self.context.get_type('Main')
+            main.get_method('main')
+            if main.parent != 'Object':
+                self.errors.append('The class "Main" cannot inherits from any type.')
         except SemanticError:
             self.errors.append('The class "Main" and his method "main" are needed.')
             
@@ -362,24 +374,39 @@ class TypeChecker:
             self.visit(expr, child)
             
         self.visit(node.in_body, child)
+        node.computed_type = node.in_body.computed_type
         
     @visitor.when(IfThenElseNode)
     def visit(self, node, scope):
         self.visit(node.condition, scope)
+        expr_type = node.condition.computed_type
+
+        if not expr_type.name == 'Bool':
+            self.errors.append(CONDITION_NOT_BOOL.replace('%s', 'If', 1).replace('%s', expr_type.name, 1))
+
         self.visit(node.if_body, scope)
-        self.visit(node.else_body, scope)
+        
+        if node.else_body:
+            self.visit(node.else_body, scope)
         
     @visitor.when(BlockNode)
     def visit(self, node, scope):
         for expr in node.exprs:
             self.visit(expr, scope)
+
+        last_expr = node.exprs[-1]
+        node.computed_type = last_expr.computed_type    
             
     @visitor.when(WhileLoopNode)
     def visit(self, node, scope):
         self.visit(node.condition, scope)
+        expr_type = node.condition.computed_type
+
+        if not expr_type.name == 'Bool':
+            self.errors.append(CONDITION_NOT_BOOL.replace('%s', 'While', 1).replace('%s', expr_type.name, 1))
+
         self.visit(node.body, scope)
-        
-        node.computed_type = ObjectType()
+        node.computed_type = None
     
     @visitor.when(FunctionCallNode)
     def visit(self, node, scope):
