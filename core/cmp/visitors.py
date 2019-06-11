@@ -419,13 +419,18 @@ class TypeChecker:
     @visitor.when(CaseOfNode)
     def visit(self, node, scope):
         self.visit(node.expr, scope)
+        has_auto = False
         
         types_list = []
         for case in node.branches:
             self.visit(case.expr, scope)
+            has_auto |= IsAuto(case.expr.computed_type.name)
             type_list.append(case.expr.computed_type)
 
-        node.computed_type = LCA(type_list)
+        if has_auto:
+            node.computed_type = self.context.get_type('AUTO_TYPE')
+        else:
+            node.computed_type = LCA(type_list)
             
     @visitor.when(LetInNode)
     def visit(self, node, scope):
@@ -450,7 +455,10 @@ class TypeChecker:
         
         if node.else_body:
             self.visit(node.else_body, scope)
-            node.computed_type = LCA([node.if_body.computed_type, node.else_body.computed_type])
+            if IsAuto(node.if_body.computed_type.name) or IsAuto(node.else_body.computed_type):
+                node.computed_type = self.context.get_type('AUTO_TYPE')
+            else:
+                node.computed_type = LCA([node.if_body.computed_type, node.else_body.computed_type])
             
         
     @visitor.when(BlockNode)

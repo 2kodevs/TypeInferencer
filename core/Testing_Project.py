@@ -73,7 +73,7 @@ class Main {
     a : Bool ;
     b : Int <- true ;
     c : AUTO_TYPE <- 666 ;
-    main ( console : IO ) : Bool {
+    main ( console : IO ) : AUTO_TYPE {
         a ;
     } ;
 } ;
