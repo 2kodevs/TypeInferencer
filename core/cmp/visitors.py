@@ -408,7 +408,7 @@ class TypeChecker:
             
             if var.name == 'self':
                 self.errors.append(SELF_IS_READONLY)
-            elif not expr_type.conforms_to(node_type): 
+            elif not IsAuto(expr_type.name) and not expr_type.conforms_to(node_type): 
                 self.errors.append(INCOMPATIBLE_TYPES.replace('%s', expr_type.name, 1).replace('%s', node_type.name, 1))
         else:
             self.errors.append(VARIABLE_NOT_DEFINED.replace('%s', node.id, 1).replace('%s', self.current_method.name, 1))
@@ -425,12 +425,12 @@ class TypeChecker:
         for case in node.branches:
             self.visit(case.expr, scope)
             has_auto |= IsAuto(case.expr.computed_type.name)
-            type_list.append(case.expr.computed_type)
+            types_list.append(case.expr.computed_type)
 
         if has_auto:
             node.computed_type = self.context.get_type('AUTO_TYPE')
         else:
-            node.computed_type = LCA(type_list)
+            node.computed_type = LCA(types_list)
             
     @visitor.when(LetInNode)
     def visit(self, node, scope):
@@ -502,6 +502,11 @@ class TypeChecker:
         except SemanticError as ex:
             self.errors.append(ex.text)
             node_type = ErrorType()
+
+        #TODO: Chech if the node.type has the method node.id
+        if node.type and not IsAuto(node.type):
+            if not obj_type.conforms_to(self.context.get_type(node.type)):
+                self.errors.append(INCOMPATIBLE_TYPES.replace('%s', obj_type.name, 1).replace('%s', node.type, 1))
             
         node.computed_type = node_type
     

@@ -73,10 +73,17 @@ class Main {
     a : Bool ;
     b : Int <- true ;
     c : AUTO_TYPE <- 666 ;
-    main ( console : IO ) : AUTO_TYPE {
+    main ( console : IO ) : Bool {
+        case b of {
+            r1 : Bool => new A ;
+            r2 : SELF_TYPE => new Main ;
+            }
+        esac ;
         a ;
     } ;
 } ;
+
+class A { } ;
 '''
 
 def run_pipeline(G, text):
