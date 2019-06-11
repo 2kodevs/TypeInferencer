@@ -292,8 +292,10 @@ def LCA(type_list):
 			else:
 				break
 
-	raise Excption('El LCA se partio')
+	raise Exception('El LCA se partio')
 
+def IsAuto(name):
+    return name == 'AUTO_TYPE'
 
 # Type Checker
 class TypeChecker:
@@ -302,6 +304,7 @@ class TypeChecker:
         self.current_type = None
         self.current_method = None
         self.errors = errors
+        self.autos = 0
 
     @visitor.on('node')
     def visit(self, node, scope):
@@ -312,6 +315,7 @@ class TypeChecker:
         scope = Scope()
         for declaration in node.declarations:
             self.visit(declaration, scope.create_child())
+        scope.autos = self.autos
         return scope
 
     @visitor.when(ClassDeclarationNode)
@@ -327,14 +331,33 @@ class TypeChecker:
     
     @visitor.when(AttrDeclarationNode)
     def visit(self, node, scope):
-        pass
-        #TODO Ton check the exp type is comptible with attr
+        if IsAuto(node.type):
+            self.autos += 1
+
+        if not node.expr:
+            return
+
+        self.visit(node.expr, scope)
+        expr_type = node.expr.computed_type
+
+        try:
+            node_type = self.context.get_type(node.type) if node.type != 'SELF_TYPE' else self.current_type
+        except SemanticError as ex:
+            self.errors.append(ex.text)
+            node_type = ErrorType()
+        
+        if not (IsAuto(expr_type.name) or expr_type.conforms_to(node_type)):
+            self.errors.append(INCOMPATIBLE_TYPES.replace('%s', expr_type.name, 1).replace('%s', node_type.name, 1))
+        
+        node.computed_type = node_type 
     
     @visitor.when(FuncDeclarationNode)
     def visit(self, node, scope):
         self.current_method = self.current_type.get_method(node.id)
         
         for pname, ptype in zip(self.current_method.param_names, self.current_method.param_types):
+            if IsAuto(ptype.name):
+                self.autos += 1
             scope.define_variable(pname, ptype)
             
         for expr in node.body:
@@ -344,11 +367,17 @@ class TypeChecker:
         last_expr_type = last_expr.computed_type
         method_rtn_type = self.current_method.return_type
         
+        if method_rtn_type.name == 'AUTO_TYPE':
+            self.autos += 1
+
         if not last_expr_type.conforms_to(method_rtn_type):
             self.errors.append(INCOMPATIBLE_TYPES.replace('%s', last_expr_type.name, 1).replace('%s', method_rtn_type.name, 1))
 
     @visitor.when(LetAttributeNode)
     def visit(self, node, scope):
+        if IsAuto(node.type):
+            self.autos += 1
+
         self.visit(node.expr, scope)
         expr_type = node.expr.computed_type
         
@@ -413,7 +442,7 @@ class TypeChecker:
         self.visit(node.condition, scope)
         expr_type = node.condition.computed_type
 
-        if not expr_type.name == 'Bool':
+        if not expr_type.name in ['Bool', 'AUTO_TYPE']:
             self.errors.append(CONDITION_NOT_BOOL.replace('%s', 'If', 1).replace('%s', expr_type.name, 1))
 
         self.visit(node.if_body, scope)
@@ -437,7 +466,7 @@ class TypeChecker:
         self.visit(node.condition, scope)
         expr_type = node.condition.computed_type
 
-        if not expr_type.name == 'Bool':
+        if not expr_type.name in ['Bool', 'AUTO_TYPE']:
             self.errors.append(CONDITION_NOT_BOOL.replace('%s', 'While', 1).replace('%s', expr_type.name, 1))
 
         self.visit(node.body, scope)
@@ -476,7 +505,7 @@ class TypeChecker:
         self.visit(node.right, scope)
         right_type = node.right.computed_type
         
-        if not left_type.conforms_to(IntType()) or not right_type.conforms_to(IntType()):
+        if not (IsAuto(left_type.name) or left_type.conforms_to(IntType())) or not (IsAuto(right_type.name) or right_type.conforms_to(IntType())):
             self.errors.append(INVALID_OPERATION.replace('%s', left_type.name, 1).replace('%s', right_type.name, 1))
             node_type = ErrorType()
         else:
@@ -509,10 +538,14 @@ class TypeChecker:
 
     @visitor.when(NewNode)
     def visit(self, node, scope):
-        try:
-            node_type = self.context.get_type(node.type)
-        except SemanticError as ex:
-            self.errors.append(ex.text)
-            node_type = ErrorType()
-            
-        node.computed_type = node_type
+        if node.type in build_in_types:
+            self.errors.append(f'It cannot be initialized a {node.type} with the new keyword')
+            node.computed_type = ErrorType()
+        else:
+            try:
+                node_type = self.context.get_type(node.type)
+            except SemanticError as ex:
+                self.errors.append(ex.text)
+                node_type = ErrorType()
+                
+            node.computed_type = node_type
