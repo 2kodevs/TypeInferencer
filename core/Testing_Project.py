@@ -26,7 +26,7 @@ class A inherits SELF_TYPE { } ;
 class Main {
     a : Bool ;
     b : Int <- 666 ;
-    main ( console : IO ) : SELF_TYPE {
+    main ( console : IO ) : Bool {
         a <- true ;
         {
             let c : Int <- 0 in c + b ;
@@ -38,6 +38,53 @@ class Main {
 } ;
 '''
 
+text2 = '''
+class Main {
+    main ( console : IO ) : C {
+        if true then new C else new B fi ;
+    } ;
+} ;
+
+class A { } ;
+
+class B inherits A { } ;
+
+class C inherits A { } ;
+
+'''
+
+text3 = '''
+class Main {
+    main ( console : IO ) : C {
+        if true then "tno" else new B fi ;
+    } ;
+} ;
+
+class A { } ;
+
+class B { } ;
+
+class C { } ;
+
+'''
+
+text4 = '''
+class Main {
+    a : Bool ;
+    b : Int <- true ;
+    c : AUTO_TYPE <- 666 ;
+    main ( console : IO ) : Bool {
+        case b of {
+            r1 : Bool => new A ;
+            r2 : SELF_TYPE => new Main ;
+            }
+        esac ;
+        a ;
+    } ;
+} ;
+
+class A { } ;
+'''
 
 def run_pipeline(G, text):
     ast = build_AST(G, text)
@@ -71,5 +118,6 @@ def run_pipeline(G, text):
 # In[47]:
 
 
-ast, errors, context, scope = run_pipeline(CoolGrammar, text)
+ast, errors, context, scope = run_pipeline(CoolGrammar, text4)
+print('NUM of AUTO_TYPES:  ', scope.autos)
 
