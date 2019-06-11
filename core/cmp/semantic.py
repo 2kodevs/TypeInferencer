@@ -101,7 +101,7 @@ class Type:
         return other.bypass() or self == other or self.parent is not None and self.parent.conforms_to(other)
 
     def bypass(self):
-        if self.name == 'Object':
+        if self.name == 'Object' or self.name == 'AUTO_TYPE':
             return True
         return False
 
