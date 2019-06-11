@@ -484,9 +484,17 @@ class TypeChecker:
     def visit(self, node, scope):
         self.visit(node.obj, scope)
         obj_type = node.obj.computed_type
+        at_clean = node.type in build_in_types if node.type else None
         
+        if at_clean:
+            if not obj_type.conforms_to(self.context.get_type(node.type)):
+                self.errors.append(INCOMPATIBLE_TYPES.replace('%s', obj_type.name, 1).replace('%s', node.type, 1))
+
         try:
-            obj_method = obj_type.get_method(node.id)
+            if node.type:
+                obj_method = self.context.get_type(node.type).get_method(node.id)
+            else:
+                obj_method = obj_type.get_method(node.id)
             
             if len(node.args) == len(obj_method.param_types):
                 for arg, param_type in zip(node.args, obj_method.param_types):
@@ -502,11 +510,6 @@ class TypeChecker:
         except SemanticError as ex:
             self.errors.append(ex.text)
             node_type = ErrorType()
-
-        #TODO: Chech if the node.type has the method node.id
-        if node.type and not IsAuto(node.type):
-            if not obj_type.conforms_to(self.context.get_type(node.type)):
-                self.errors.append(INCOMPATIBLE_TYPES.replace('%s', obj_type.name, 1).replace('%s', node.type, 1))
             
         node.computed_type = node_type
     
