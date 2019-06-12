@@ -2,7 +2,7 @@ import core.cmp.visitor as visitor
 from core.cmp.CoolUtils import *
 from core.cmp.semantic import SemanticError
 from core.cmp.semantic import Attribute, Method, Type
-from core.cmp.semantic import ErrorType, IntType, StringType, BoolType, IOType
+from core.cmp.semantic import ErrorType, IntType, StringType, BoolType, IOType, VoidType
 from core.cmp.semantic import Context, Scope
 
 WRONG_SIGNATURE = 'Method "%s" already defined in "%s" with a different signature.'
@@ -302,7 +302,10 @@ def LCA(type_list, context):
     raise Exception('El LCA se partio')
 
 def IsAuto(name):
-    return name == 'AUTO_TYPE'
+    return name == 'AUTO_TYPE' or IsVoid(name)
+
+def IsVoid(name):
+    return name == 'void'
 
 # Type Checker
 class TypeChecker:
@@ -488,7 +491,7 @@ class TypeChecker:
             self.errors.append(CONDITION_NOT_BOOL.replace('%s', 'While', 1).replace('%s', expr_type.name, 1))
 
         self.visit(node.body, scope)
-        node.computed_type = None
+        node.computed_type = VoidType()
     
     @visitor.when(FunctionCallNode)
     def visit(self, node, scope):
@@ -646,6 +649,13 @@ class InferenceVisitor(object):
     @visitor.when(FunctionCallNode)
     def update(self, node, scope, ntype):
         obj_type = node.obj.computed_type
+
+        obj_type.get_method(node.id).return_type = ntype
+        node.computed_type = ntype
+
+    @visitor.when(MemberCallNode)
+    def update(self, node, scope, ntype):
+        obj_type = self.current_type
 
         obj_type.get_method(node.id).return_type = ntype
         node.computed_type = ntype
@@ -828,7 +838,7 @@ class InferenceVisitor(object):
             self.errors.append(CONDITION_NOT_BOOL.replace('%s', 'If', 1).replace('%s', expr_type.name, 1))
 
         self.visit(node.body, scope)
-        node.computed_type = None
+        node.computed_type = VoidType()
     
     @visitor.when(BlockNode)
     def visit(self, node, scope):
@@ -1110,7 +1120,7 @@ class InferenceVisitor(object):
 
 class ComputedVisitor(FormatVisitor):
     def replace_auto(self, name):
-        return 'AUTO_TYPE' if IsAuto(name) else name
+        return 'Object' if IsAuto(name) else name
 
     @visitor.on('node')
     def visit(self, node, tabs):

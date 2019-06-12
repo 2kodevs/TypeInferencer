@@ -136,10 +136,12 @@ class ErrorType(Type):
 
 class VoidType(Type):
     def __init__(self):
-        Type.__init__(self, '<void>')
+        Type.__init__(self, 'void')
 
     def conforms_to(self, other):
-        raise Exception('Invalid type: void type.')
+        if other.name in [ 'Int', 'String', 'Bool', 'IO']:
+            return False
+        return True
 
     def bypass(self):
         return True
