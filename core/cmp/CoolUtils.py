@@ -1,5 +1,6 @@
-from cmp.pycompiler import Grammar
-from cmp.functions import LR1Parser
+from core.cmp.pycompiler import Grammar
+from core.cmp.functions import LR1Parser
+from core.cmp.utils import Token, tokenizer
 
 # AST Classes
 class Node:
@@ -280,10 +281,10 @@ atom %= boolx, lambda h, s: BoolNode(s[1])
 member_call %= idx + opar + arg_list + cpar, lambda h, s: MemberCallNode(s[1], s[3])
 member_call %= idx + opar + cpar, lambda h, s: MemberCallNode(s[1], [])
 
+# Parser
+CoolParser = LR1Parser(CoolGrammar)
 
 # Tokenizer
-
-from cmp.utils import Token, tokenizer
 
 fixed_tokens = { t.Name: Token(t.Name, t) for t in CoolGrammar.terminals if t not in { idx, integer, typex, string, boolx}}
 booleans = ['false', 'true']
@@ -335,11 +336,12 @@ def format_tokens(tokens):
         if token.token_type in { ocur, ccur, semi }:
             if token.token_type == ccur:
                 indent -= 1
-            txt + = '    '*indent + ' '.join(str(t.token_type) for t in pending))
+            txt += '    '*indent + ' '.join(str(t.token_type) for t in pending) + '\n'
             pending.clear()
             if token.token_type == ocur:
                 indent += 1
-    txt += ' '.join([str(t.token_type) for t in pending]))
+    txt += ' '.join([str(t.token_type) for t in pending])
+    return txt
 
 # Example text
 _text = '''

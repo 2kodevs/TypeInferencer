@@ -1,9 +1,9 @@
-import cmp.visitor as visitor
-from cmp.CoolUtils import *
-from cmp.semantic import SemanticError
-from cmp.semantic import Attribute, Method, Type
-from cmp.semantic import ErrorType, IntType, StringType, BoolType, IOType
-from cmp.semantic import Context, Scope
+import core.cmp.visitor as visitor
+from core.cmp.CoolUtils import *
+from core.cmp.semantic import SemanticError
+from core.cmp.semantic import Attribute, Method, Type
+from core.cmp.semantic import ErrorType, IntType, StringType, BoolType, IOType
+from core.cmp.semantic import Context, Scope
 
 WRONG_SIGNATURE = 'Method "%s" already defined in "%s" with a different signature.'
 SELF_IS_READONLY = 'Variable "self" is read-only.'
