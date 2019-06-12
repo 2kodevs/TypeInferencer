@@ -10,9 +10,9 @@ def build_AST(G, text):
     pprint_tokens(tokens)
     print('=================== PARSE =====================')
     parser = LR1Parser(G)
-    print(parser([t.token_type for t in tokens], get_shift_reduce=True))
+    #print(parser([t.token_type for t in tokens], get_shift_reduce=True))
     parse, operations = parser([t.token_type for t in tokens], get_shift_reduce=True)
-    print('\n'.join(repr(x) for x in parse))
+    #print('\n'.join(repr(x) for x in parse))
     print('==================== AST ======================')
     ast = evaluate_reverse_parse(parse, operations, tokens)
     formatter = FormatVisitor()
@@ -86,6 +86,102 @@ class Main {
 class A { } ;
 '''
 
+text5 = '''
+class Main {
+    a : Bool ;
+    b : Int <- true ;
+    c : Int ;
+    d : AUTO_TYPE ;
+    main ( console : IO ) : AUTO_TYPE {
+        case b of {
+            r1 : Bool => new A ;
+            r2 : SELF_TYPE => new Main ;
+            }
+        esac ;
+        d ;
+    } ;
+
+
+} ;
+
+class A { } ;
+'''
+
+text6 = '''
+class Main {
+    a : Bool ;
+    b : Int <- true ;
+    c : AUTO_TYPE <- self . wait ( tRuE ) ;
+    d : AUTO_TYPE ;
+    main ( console : IO ) : AUTO_TYPE {
+        case b of {
+            r1 : Bool => new A ;
+            r2 : SELF_TYPE => new Main ;
+            }
+        esac ;
+        d <- self . wait ( 5 ) ;
+        d ;
+    } ;
+
+    wait ( x : AUTO_TYPE ) : AUTO_TYPE {
+        x ;
+    } ;
+
+
+} ;
+
+class A { } ;
+'''
+
+text7 = '''
+class Main {
+    a : Bool ;
+    b : Int <- true ;
+    c : Int ;
+    d : AUTO_TYPE ;
+    main ( console : IO ) : AUTO_TYPE {
+        if d then d fi ;
+    } ;
+} ;
+'''
+
+text8 = '''
+class Main {
+    a : Bool ;
+    b : Int <- true ;
+    c : AUTO_TYPE ;
+    d : AUTO_TYPE ;
+    main ( console : IO ) : Int {
+        if d then c else d fi ;
+    } ;
+} ;
+
+class A { } ;
+
+class B { } ;
+
+class C inherits A { } ;
+'''
+
+text9 = '''
+class Main {
+    a : Bool ;
+    b : Int <- true ;
+    c : AUTO_TYPE ;
+    d : AUTO_TYPE ;
+    main ( console : IO ) : Int {
+        let k : AUTO_TYPE in k ;
+    } ;
+} ;
+
+class A { } ;
+
+class B { } ;
+
+class C inherits A { } ;
+'''
+
+
 def run_pipeline(G, text):
     ast = build_AST(G, text)
     print('============== COLLECTING TYPES ===============')
@@ -103,21 +199,35 @@ def run_pipeline(G, text):
     for error in errors:
         print('\t', error)
     print(']')
-    print('Context:')
-    print(context)
+    # print('Context:')
+    # print(context)
     print('=============== CHECKING TYPES ================')
-    checker = TypeChecker(context, errors)
+    checker = TypeChecker(context, [])
     scope = checker.visit(ast)
+    # print('Errors: [')
+    # for error in errors:
+    #     print('\t', error)
+    # print(']')
+    # errors.clear()
+    print('=============== INFERING TYPES ================')
+    inferer = InferenceVisitor(context, errors)
+    while True:
+        old = scope.count_auto()
+        scope = inferer.visit(ast)
+        if old == scope.count_auto():
+            break
     print('Errors: [')
-    for error in errors:
+    for error in set(errors):
         print('\t', error)
     print(']')
+    print('Context:')
+    print(context)
     return ast, errors, context, scope
 
 
 # In[47]:
 
 
-ast, errors, context, scope = run_pipeline(CoolGrammar, text4)
-print('NUM of AUTO_TYPES:  ', scope.autos)
+ast, errors, context, scope = run_pipeline(CoolGrammar, text9)
+print('NUM of AUTO_TYPES:  ', scope.count_auto())
 
