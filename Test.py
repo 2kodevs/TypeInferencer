@@ -1,5 +1,5 @@
-from cmp.visitors import *
-from cmp.evaluation import *
+from core.cmp.visitors import *
+from core.cmp.evaluation import *
 
 
 def build_AST(G, text):
