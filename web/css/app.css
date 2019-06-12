@@ -1,0 +1,27 @@
+
+
+footer {
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    margin-top: 20px;
+}
+
+.list-item{
+    display: inline-block;
+    margin-right: 10px;
+}
+.fade-enter-active, .fade-leave-active{
+    transition: all 1s;
+}
+.fade-enter, .fade-leave-to{
+    opacity: 0;
+    transform: rotate(45deg) translateY(-30px);
+}
+.fade-move{
+    transition: transform 1s;
+}
+.fade-leave-active{
+    position: absolute;
+}
+
