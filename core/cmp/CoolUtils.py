@@ -326,6 +326,21 @@ def pprint_tokens(tokens):
                 indent += 1
     print(' '.join([str(t.token_type) for t in pending]))
 
+def format_tokens(tokens):
+    indent = 0
+    pending = []
+    txt = ''
+    for token in tokens:
+        pending.append(token)
+        if token.token_type in { ocur, ccur, semi }:
+            if token.token_type == ccur:
+                indent -= 1
+            txt + = '    '*indent + ' '.join(str(t.token_type) for t in pending))
+            pending.clear()
+            if token.token_type == ocur:
+                indent += 1
+    txt += ' '.join([str(t.token_type) for t in pending]))
+
 # Example text
 _text = '''
 class Main {
