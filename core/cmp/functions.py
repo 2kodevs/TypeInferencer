@@ -1,6 +1,6 @@
-from cmp.pycompiler import *
-from cmp.automata import *
-from cmp.utils import *
+from core.cmp.pycompiler import *
+from core.cmp.automata import *
+from core.cmp.utils import *
 
 
 def compute_local_first(firsts, alpha):

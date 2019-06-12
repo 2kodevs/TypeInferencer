@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width,initial-scale=1,minimal-ui"
+      name="viewport"
+    />
+    <link rel="stylesheet" href="css/css/fontawesome-all.css" />
+    <link rel="stylesheet" href="css/materialize.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <script type="text/javascript" src="/eel.js"></script>
+    <script type="text/javascript" src="js/materialize.js"></script>
+    <link rel="stylesheet" href="lib/codemirror.css" />
+    <script type="text/javascript" src="lib/codemirror.js"></script>
+    <script type="text/javascript" src="js/clike.js"></script>
+  </head>
+  <body>
+    <div id="root" style="position: relative;">
+      <header></header>
+      <div class="container">
+        <h5 class="center-align" v-if="!has_error" style="margin-top: 30px">
+          Write some <b>Cool</b> code!
+        </h5>
+        <div class="row z-depth-1">
+          <textarea id="form"> </textarea>
+        </div>
+        <div class="row center-align">
+          <button @click="submit_code" class="btn btn-flat waves-effect">
+            Run!
+          </button>
+          <br />
+          <br />
+          <div v-if="running" class="preloader-wrapper small active">
+            <div class="spinner-layer spinner-blue">
+              <div class="circle-clipper left">
+                <div class="circle"></div>
+              </div>
+              <div class="gap-patch">
+                <div class="circle"></div>
+              </div>
+              <div class="circle-clipper right">
+                <div class="circle"></div>
+              </div>
+            </div>
+
+            <div class="spinner-layer spinner-red">
+              <div class="circle-clipper left">
+                <div class="circle"></div>
+              </div>
+              <div class="gap-patch">
+                <div class="circle"></div>
+              </div>
+              <div class="circle-clipper right">
+                <div class="circle"></div>
+              </div>
+            </div>
+
+            <div class="spinner-layer spinner-yellow">
+              <div class="circle-clipper left">
+                <div class="circle"></div>
+              </div>
+              <div class="gap-patch">
+                <div class="circle"></div>
+              </div>
+              <div class="circle-clipper right">
+                <div class="circle"></div>
+              </div>
+            </div>
+
+            <div class="spinner-layer spinner-green">
+              <div class="circle-clipper left">
+                <div class="circle"></div>
+              </div>
+              <div class="gap-patch">
+                <div class="circle"></div>
+              </div>
+              <div class="circle-clipper right">
+                <div class="circle"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row z-depth-1">
+          <textarea id="result" placeholder="Results"> </textarea>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript" src="js/vue.js"></script>
+    <script type="text/javascript" src="js/main.vue.js"></script>
+  </body>
+</html>

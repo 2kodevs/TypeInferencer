@@ -1,4 +1,4 @@
-import cmp.visitor as visitor
+import core.cmp.visitor as visitor
 
 class Node:
     def evaluate(self):

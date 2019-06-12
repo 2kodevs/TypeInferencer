@@ -33,7 +33,7 @@ class Method:
             other.param_types == self.param_types
 
 class Type:
-    def __init__(self, name:str):
+    def __init__(self, name:str='Object'):
         self.name = name
         self.attributes = []
         self.methods = {}
@@ -101,6 +101,8 @@ class Type:
         return other.bypass() or self == other or self.parent is not None and self.parent.conforms_to(other)
 
     def bypass(self):
+        if self.name == 'Object' or self.name == 'AUTO_TYPE':
+            return True
         return False
 
     def __str__(self):
@@ -134,10 +136,12 @@ class ErrorType(Type):
 
 class VoidType(Type):
     def __init__(self):
-        Type.__init__(self, '<void>')
+        Type.__init__(self, 'void')
 
     def conforms_to(self, other):
-        raise Exception('Invalid type: void type.')
+        if other.name in [ 'Int', 'String', 'Bool', 'IO']:
+            return False
+        return True
 
     def bypass(self):
         return True
@@ -147,10 +151,32 @@ class VoidType(Type):
 
 class IntType(Type):
     def __init__(self):
-        Type.__init__(self, 'int')
+        Type.__init__(self, 'Int')
 
     def __eq__(self, other):
         return other.name == self.name or isinstance(other, IntType)
+
+class StringType(Type):
+    def __init__(self):
+        Type.__init__(self, 'String')
+
+    def __eq__(self, other):
+        return other.name == self.name or isinstance(other, StringType)
+
+class BoolType(Type):
+    def __init__(self):
+        Type.__init__(self, 'Bool')
+
+    def __eq__(self, other):
+        return other.name == self.name or isinstance(other, BoolType)
+
+class IOType(Type):
+    def __init__(self):
+        Type.__init__(self, 'IO')
+
+    def __eq__(self, other):
+        return other.name == self.name or isinstance(other, IOType)
+
 
 class Context:
     def __init__(self):
@@ -211,3 +237,10 @@ class Scope:
 
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
+
+    def count_auto(self):
+        num = 0
+        for var in self.locals:
+            if var.type.name == 'AUTO_TYPE':
+                num += 1
+        return num + sum([scp.count_auto() for scp in self.children])
