@@ -235,3 +235,10 @@ class Scope:
 
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
+
+    def count_auto(self):
+        num = 0
+        for var in self.locals:
+            if var.type.name == 'AUTO_TYPE':
+                num += 1
+        return num + sum([scp.count_auto() for scp in self.children])
