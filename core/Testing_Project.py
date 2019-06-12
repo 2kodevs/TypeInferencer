@@ -156,11 +156,19 @@ class Main {
     } ;
 } ;
 
-class A { } ;
+class A { 
+    repet ( param : IO ) : String {
+        "output" ;
+    } ;
+} ;
 
 class B { } ;
 
-class C inherits A { } ;
+class C inherits A { 
+    repet ( param : Int ) : String {
+        "output" ;
+    } ;
+} ;
 '''
 
 text9 = '''
@@ -170,17 +178,50 @@ class Main {
     c : AUTO_TYPE ;
     d : AUTO_TYPE ;
     main ( console : IO ) : Int {
+        
         let k : AUTO_TYPE in k ;
     } ;
 } ;
-
-class A { } ;
-
-class B { } ;
-
-class C inherits A { } ;
 '''
 
+text10 = '''
+class Main {
+    
+    main ( console : IO ) : AUTO_TYPE {
+        5 ;
+    } ;
+
+    is_null ( x : Int ) : AUTO_TYPE {
+        isvoid ( x ) ;
+    } ;
+
+} ;
+
+'''
+
+text11 = '''
+class Main {
+    a : Bool ;
+    b : Int <- true ;
+    c : AUTO_TYPE <- self . wait ( tRuE ) ;
+    d : AUTO_TYPE ;
+    main ( console : IO ) : AUTO_TYPE {
+        case b of {
+            r1 : Bool => new A ;
+            r2 : SELF_TYPE => new Main ;
+            }
+        esac ;
+        d <- wait ( 5 ) ;
+        d ;
+    } ;
+
+    wait ( x : AUTO_TYPE ) : AUTO_TYPE {
+        x ;
+    } ;
+
+} ;
+
+'''
 
 def run_pipeline(G, text):
     ast = build_AST(G, text)
@@ -199,35 +240,30 @@ def run_pipeline(G, text):
     for error in errors:
         print('\t', error)
     print(']')
-    # print('Context:')
-    # print(context)
     print('=============== CHECKING TYPES ================')
     checker = TypeChecker(context, [])
     scope = checker.visit(ast)
-    # print('Errors: [')
-    # for error in errors:
-    #     print('\t', error)
-    # print(']')
-    # errors.clear()
     print('=============== INFERING TYPES ================')
-    inferer = InferenceVisitor(context, errors)
+    inferer = InferenceVisitor(context, [])
     while True:
         old = scope.count_auto()
         scope = inferer.visit(ast)
         if old == scope.count_auto():
             break
+    inferer = InferenceVisitor(context, errors)
+    scope = inferer.visit(ast)
     print('Errors: [')
-    for error in set(errors):
+    for error in errors:
         print('\t', error)
     print(']')
     print('Context:')
     print(context)
+    formatter = ComputedVisitor()
+    tree = formatter.visit(ast)
+    print(tree)
     return ast, errors, context, scope
 
 
-# In[47]:
-
-
-ast, errors, context, scope = run_pipeline(CoolGrammar, text9)
+ast, errors, context, scope = run_pipeline(CoolGrammar, text11)
 print('NUM of AUTO_TYPES:  ', scope.count_auto())
 
