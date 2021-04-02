@@ -22,7 +22,7 @@ It is important to note that the symbols of the code must be inserted with a bla
 
 ## Authors ✒️
 
-- **Miguel Tenorio Potrony** - [stdevAntiD2ta](https://github.com/stdevAntiD2ta)
+- **Miguel Tenorio Potrony** - [AntiD2ta](https://github.com/AntiD2ta)
 - **Lazaro Raul Iglesias Vera** -- [stdevRulo](https://github.com/stdevRulo)
 
 ## License 📄
