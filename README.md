@@ -22,8 +22,8 @@ It is important to note that the symbols of the code must be inserted with a bla
 
 ## Authors ✒️
 
-- **Miguel Tenorio Potrony** - [AntiD2ta](https://github.com/AntiD2ta)
-- **Lazaro Raul Iglesias Vera** -- [stdevRulo](https://github.com/stdevRulo)
+- **Miguel Tenorio Potrony** -- [AntiD2ta](https://github.com/AntiD2ta)
+- **Lazaro Raul Iglesias Vera** -- [e1Ru1o](https://github.com/e1Ru1o)
 
 ## License 📄
 
